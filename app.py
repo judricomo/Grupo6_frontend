@@ -4,11 +4,19 @@ import os
 import subprocess
 from PIL import Image
 
-# Path to your pretrained HerdNet model (include this .pth in your repo)
-MODEL_PATH = "herdnet_model_exp_4.pth"
+# Discover all .pth files in repo root
+MODEL_FILES = [f for f in os.listdir('.') if f.endswith('.pth')]
+if not MODEL_FILES:
+    st.error("No model .pth files found in repo root.")
 
 st.set_page_config(page_title="HerdNet Animal Detector", layout="wide")
 st.title("🐾 HerdNet Animal Detector")
+
+# Let user pick which model weights to use
+model_choice = st.selectbox(
+    "Choose HerdNet model file", MODEL_FILES,
+    help="Select the .pth file to use for inference"
+)
 
 st.markdown(
     """
@@ -18,30 +26,31 @@ st.markdown(
 )
 
 uploaded_file = st.file_uploader(
-    "Upload an image", type=["jpg", "jpeg", "png"], accept_multiple_files=False
+    "Upload an image", type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file:
-    # Display the uploaded image
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded image", use_container_width=True)
+    # Show side-by-side placeholders before inference
+    col1, col2 = st.columns(2)
+    col1.image(image, caption="Uploaded image", use_container_width=True)
 
     if st.button("Detect Animals"):
         st.info("Running inference, please wait...")
         with st.spinner("Detecting animals..."):
-            # Create a temporary folder to hold the input image
             with tempfile.TemporaryDirectory() as tmp_dir:
+                # Prepare folders
                 input_folder = os.path.join(tmp_dir, "input")
                 os.makedirs(input_folder, exist_ok=True)
                 img_path = os.path.join(input_folder, uploaded_file.name)
                 image.save(img_path)
 
-                # Run the existing infer.py script as a module to ensure imports resolve
+                # Run inference as a module
                 result = subprocess.run(
                     [
                         "python", "-m", "tools.infer",
                         input_folder,
-                        MODEL_PATH,
+                        model_choice,
                         "-device", "cpu"
                     ],
                     capture_output=True,
@@ -52,7 +61,7 @@ if uploaded_file:
                     st.error("Inference failed:")
                     st.code(result.stderr)
                 else:
-                    # Locate the output plots folder
+                    # Find output
                     out_root = None
                     for entry in os.listdir(input_folder):
                         if entry.endswith("_HerdNet_results"):
@@ -65,7 +74,10 @@ if uploaded_file:
                         out_img_path = os.path.join(plot_dir, uploaded_file.name)
                         if os.path.exists(out_img_path):
                             annotated = Image.open(out_img_path)
-                            st.image(annotated, caption="Detected Animals", use_container_width=True)
+                            # Show results side by side
+                            col1, col2 = st.columns(2)
+                            col1.image(image, caption="Original", use_container_width=True)
+                            col2.image(annotated, caption="Detected Animals", use_container_width=True)
                         else:
                             st.error("Annotated image not found in results.")
         st.success("Done!")
