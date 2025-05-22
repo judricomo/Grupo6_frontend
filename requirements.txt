@@ -8,3 +8,5 @@ matplotlib
 torchvision
 wandb
 sklearn
+streamlit
+tqdm
