@@ -7,6 +7,6 @@ scipy
 matplotlib
 torchvision
 wandb
-sklearn
+scikit-learn
 streamlit
 tqdm
