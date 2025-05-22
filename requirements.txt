@@ -1,5 +1,5 @@
 albumentations
-torch==2.7.0+cpu
+torch
 torchvision
 pandas
 numpy
