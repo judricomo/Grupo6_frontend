@@ -14,7 +14,7 @@ This project implements a deep learning pipeline for **automatic detection, coun
 
 **Juan Felipe Jiménez**
 
-Master’s Project – Universidad de los Andes, 2025
+*Master’s Project – Universidad de los Andes, 2025*
 
 ---
 
