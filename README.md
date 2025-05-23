@@ -72,14 +72,6 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Used libraries:
-
-* PyTorch
-* Albumentations
-* MLflow
-* OpenCV
-* Streamlit
-
 ---
 
 ## 🧪 Experiments
