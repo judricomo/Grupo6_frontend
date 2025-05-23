@@ -4,7 +4,7 @@ This project implements a deep learning pipeline for **automatic detection, coun
 
 ---
 
-## 👨‍💻 Authors
+## 👨‍💻 Authors:
 
 **Alejandro Aristizábal**
 
