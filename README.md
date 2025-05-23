@@ -7,8 +7,11 @@ This project implements a deep learning pipeline for **automatic detection, coun
 ## 👨‍💻 Authors
 
 **Alejandro Aristizábal**
+
 **Alexander Hernández**
+
 **Juan David Rico**
+
 **Juan Felipe Jiménez**
 
 Master’s Project – Universidad de los Andes, 2025
