@@ -125,7 +125,7 @@ In `tools/`:
 Example:
 
 ```bash
-python tools/infer.py --model_path Modelos/herdnet_model_exp_4_OFFICIAL.pth --image_path Datos/test_10_pics_sample/example.jpg
+python -m tools.infer img_folder_path pth_file_path -device cpu
 ```
 
 ---
