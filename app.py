@@ -3,6 +3,7 @@ import tempfile
 import os
 import subprocess
 import sys
+import pandas as pd
 from PIL import Image
 
 # Discover .pth model files in the repo root
@@ -71,17 +72,36 @@ if uploaded_file:
                     st.stop()
                 out_root = os.path.join(input_folder, results_dirs[0])
 
-                # Prepare path to annotated output image
+                # Show full annotated image
                 plot_dir = os.path.join(out_root, "plots")
-                out_img_path = os.path.join(plot_dir, uploaded_file.name)
-                if not os.path.exists(out_img_path):
-                    st.error("Annotated image not found in results.")
+                annotated_path = os.path.join(plot_dir, uploaded_file.name)
+                if not os.path.exists(annotated_path):
+                    st.error("Annotated image not found.")
                     st.stop()
 
-                # Display original and annotated images side by side
-                annotated_image = Image.open(out_img_path)
+                annotated_image = Image.open(annotated_path)
                 col1, col2 = st.columns(2)
                 col1.image(original_image, caption="Original", use_container_width=True)
                 col2.image(annotated_image, caption="Detected Animals", use_container_width=True)
 
+                # Display detections CSV
+                csv_files = [f for f in os.listdir(out_root) if f.endswith("_detections.csv")]
+                if csv_files:
+                    csv_path = os.path.join(out_root, csv_files[0])
+                    df = pd.read_csv(csv_path)
+                    st.markdown("### Detection Results CSV")
+                    st.dataframe(df)
+
+                # Display thumbnails gallery
+                thumb_dir = os.path.join(out_root, "thumbnails")
+                if os.path.exists(thumb_dir):
+                    st.markdown("### Thumbnails of Each Detection")
+                    thumbs = sorted(os.listdir(thumb_dir))
+                    # show in rows of 4
+                    for i in range(0, len(thumbs), 4):
+                        cols = st.columns(4)
+                        for j, thumb in enumerate(thumbs[i:i+4]):
+                            path = os.path.join(thumb_dir, thumb)
+                            img = Image.open(path)
+                            cols[j].image(img, caption=thumb, use_container_width=True)
         st.success("Detection complete!")
