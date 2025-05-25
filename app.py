@@ -31,6 +31,10 @@ with tabs[0]:
     uploaded = st.file_uploader("Upload an image:", type=["jpg","jpeg","png"])
     if uploaded:
         img = Image.open(uploaded)
+        MAX_DIM = 2000
+        if max(img.width, img.height) > MAX_DIM:
+            img = img.copy()
+            img.thumbnail((MAX_DIM, MAX_DIM), resample=Image.LANCZOS)
         st.image(img, use_container_width=True)
         if st.button("Detect Animals", key="single_detect"):
             st.toast("🔍 Running single image inference...", icon="🔍")
