@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 from PIL import Image
 
-# Page configuration
+## Page configuration
 st.set_page_config(page_title="HerdNet Animal Detector Demo", layout="centered")
 
 # Title
