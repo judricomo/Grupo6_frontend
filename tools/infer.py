@@ -158,6 +158,9 @@ def main():
     # Save the detections
     print('Saving the detections ...')
     detections = evaluator.detections
+    if detections is None or detections.empty or 'labels' not in detections.columns:
+        print("No detections found")
+        return
     detections.dropna(inplace=True)
     label_map = {
     1: "Topis",
