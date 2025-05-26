@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 from PIL import Image
 
-## Page configuration
+# Page configuration
 st.set_page_config(page_title="HerdNet Animal Detector Demo", layout="centered")
 
 # Title
@@ -34,6 +34,11 @@ with tabs[0]:
     uploaded = st.file_uploader("Upload an image:", type=["jpg","jpeg","png"])
     if uploaded:
         img = Image.open(uploaded)
+        # Downsample large images for faster inference
+        MAX_DIM = 2000
+        if max(img.width, img.height) > MAX_DIM:
+            img = img.copy()
+            img.thumbnail((MAX_DIM, MAX_DIM), resample=Image.LANCZOS)
         st.image(img, caption="Uploaded image", use_container_width=True)
         if st.button("Detect Animals", key="single_detect"):
             with tempfile.TemporaryDirectory() as tmp:
@@ -42,7 +47,6 @@ with tabs[0]:
                 img.save(os.path.join(inp, uploaded.name))
                 with st.spinner("Running inference..."):
                     result = run_inference(inp, model_choice)
-                # handle no detections
                 if "No detections found" in result.stdout:
                     st.warning("⚠️ No detections found. Try a higher-resolution image.")
                     st.stop()
@@ -50,26 +54,21 @@ with tabs[0]:
                     st.error("Inference failed:")
                     st.code(result.stderr)
                     st.stop()
-                # load results
                 res_dir = next(d for d in os.listdir(inp) if d.endswith("_HerdNet_results"))
                 root = os.path.join(inp, res_dir)
-                # read CSV
                 csv_file = next(f for f in os.listdir(root) if f.endswith("_detections.csv"))
                 df = pd.read_csv(os.path.join(root, csv_file))
                 if df.empty:
                     st.warning("⚠️ No detections found. Try a higher-resolution image.")
                     st.stop()
-                # display overlay
                 overlay_path = os.path.join(root, "plots", uploaded.name)
                 if os.path.exists(overlay_path):
                     overlay = Image.open(overlay_path)
                     c1, c2 = st.columns(2)
                     c1.image(img, caption="Original", use_container_width=True)
                     c2.image(overlay, caption="Detected", use_container_width=True)
-                # display CSV
                 st.markdown("### Detections CSV")
                 st.dataframe(df)
-                # display thumbnails
                 thumb_dir = os.path.join(root, "thumbnails")
                 if os.path.exists(thumb_dir):
                     thumbs = sorted(os.listdir(thumb_dir))
@@ -92,7 +91,12 @@ with tabs[1]:
             inp = os.path.join(tmp, "input")
             os.makedirs(inp, exist_ok=True)
             for f in files:
-                Image.open(f).save(os.path.join(inp, f.name))
+                img_f = Image.open(f)
+                MAX_DIM = 2000
+                if max(img_f.width, img_f.height) > MAX_DIM:
+                    img_f = img_f.copy()
+                    img_f.thumbnail((MAX_DIM, MAX_DIM), resample=Image.LANCZOS)
+                img_f.save(os.path.join(inp, f.name))
             with st.spinner("Running batch inference..."):
                 result = run_inference(inp, model_choice)
             if "No detections found" in result.stdout:
@@ -102,25 +106,20 @@ with tabs[1]:
                 st.error("Inference failed:")
                 st.code(result.stderr)
                 st.stop()
-            # load results
             res_dir = next(d for d in os.listdir(inp) if d.endswith("_HerdNet_results"))
             root = os.path.join(inp, res_dir)
-            # read CSV
             csv_file = next(f for f in os.listdir(root) if f.endswith("_detections.csv"))
             df = pd.read_csv(os.path.join(root, csv_file))
             if df.empty:
                 st.warning("⚠️ No detections found in batch. Try higher-resolution images.")
                 st.stop()
-            # info omitted images
             detected = set(df['images'])
             missing = {f.name for f in files} - detected
             if missing:
                 st.info(f"Note: {len(missing)} image(s) had no detections and are omitted.")
-            # display CSV
             st.markdown("### Batch Detections CSV")
             st.dataframe(df)
             st.markdown("---")
-            # display per-image
             for fname in df['images'].unique():
                 st.write(f"#### {fname}")
                 orig = Image.open(os.path.join(inp, fname))
@@ -130,7 +129,6 @@ with tabs[1]:
                     c1, c2 = st.columns(2)
                     c1.image(orig, caption="Original", use_container_width=True)
                     c2.image(overlay, caption="Detected", use_container_width=True)
-                # show thumbnails for this image
                 thumb_dir = os.path.join(root, "thumbnails")
                 thumbs = [t for t in os.listdir(thumb_dir) if t.startswith(fname[:-4])]
                 if thumbs:
